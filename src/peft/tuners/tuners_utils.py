@@ -531,7 +531,7 @@ class BaseTunerLayer(ABC):
                     )
                     self.set_adapter(remaining_adapters[0])
 
-
+# 返回target_module_found，判断key是否和目标层名字相匹配
 def check_target_module_exists(config, key: str) -> bool | re.Match[str] | None:
     """A helper method to check if the passed module's key name matches any of the target modules in the adapter_config.
 
