@@ -461,6 +461,7 @@ class BaseTunerLayer(ABC):
                 layer.requires_grad_(False)
             self._disable_adapters = True
 
+    # 极为重要的方法，将适配层的梯度更新开启，其他层参数冻结
     def set_adapter(self, adapter_names: str | list[str]) -> None:
         """Set the active adapter(s).
 
