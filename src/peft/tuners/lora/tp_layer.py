@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2023-present the HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,10 +44,14 @@ class LoraParallelLinear(nn.Module, LoraLayer):
         fan_in_fan_out: bool = False,
         init_lora_weights: bool = True,
         use_rslora: bool = False,
+        use_dora: bool = False,
         **kwargs,
     ):
         super().__init__()
         LoraLayer.__init__(self, base_layer=base_layer)
+
+        if use_dora:
+            raise ValueError(f"{self.__class__.__name__} does not support DoRA yet, please set it to False")
 
         self.backend = backend
         self.is_parallel_a = isinstance(base_layer, backend.RowParallelLinear)
@@ -69,17 +72,27 @@ class LoraParallelLinear(nn.Module, LoraLayer):
         self.update_layer(
             adapter_name,
             r,
-            lora_alpha,
-            lora_dropout,
-            init_lora_weights,
-            use_rslora,
-            init_method,
-            input_is_parallel,
-            gather_output,
+            lora_alpha=lora_alpha,
+            lora_dropout=lora_dropout,
+            init_lora_weights=init_lora_weights,
+            use_rslora=use_rslora,
+            use_dora=use_dora,
+            init_method=init_method,
+            input_is_parallel=input_is_parallel,
+            gather_output=gather_output,
             **parallel_linear_kwargs,
         )
 
         self.is_target_conv_1d_layer = False
+
+    @property
+    def is_paralle_a(self):
+        # TODO: remove it in PEFT 0.10.0
+        # See https://github.com/huggingface/peft/pull/1439 for more details
+        warnings.warn(
+            "`is_paralle_a` is going to be deprecated in a future release. Please use `is_parallel_a`", FutureWarning
+        )
+        return self.is_parallel_a
 
     def update_layer(
         self,
@@ -89,6 +102,7 @@ class LoraParallelLinear(nn.Module, LoraLayer):
         lora_dropout,
         init_lora_weights,
         use_rslora,
+        use_dora=False,
         init_method=init.xavier_normal_,
         input_is_parallel=True,
         gather_output=False,
